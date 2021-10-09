@@ -1,0 +1,252 @@
+{extend name="base" /}
+
+{block name="title"}首页{/block}
+
+{block name="css"}
+<style>
+    .store-total-container {
+        font-size: 14px;
+        margin-bottom: 5px;
+        letter-spacing: 1px;
+    }
+
+    .store-total-container .store-total-icon {
+        top: 45%;
+        right: 8%;
+        font-size: 65px;
+        position: absolute;
+        color: rgba(255, 255, 255, 1);
+    }
+
+    .store-total-container .store-total-item {
+        color: #fff;
+        line-height: 3em;
+        padding: 8px 25px;
+        position: relative;
+    }
+
+    .store-total-container .store-total-item > div:nth-child(2) {
+        font-size: 42px;
+        line-height: 42px;
+    }
+
+    .button-group {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 5px;
+    }
+
+    .log-summary {
+        display: flex;
+        justify-content: space-between;
+    }
+</style>
+{/block}
+
+{block name="body"}
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-header">数据统计</div>
+        <div class="layui-card-body">
+            <div class="think-box-shadow store-total-container notselect">
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-sm6 layui-col-md3">
+                        <div class="store-total-item nowrap" style="background:#06b9a8">
+                            <div>评价总量</div>
+                            <div>123</div>
+                            <div>用户留言评论总量</div>
+                        </div>
+                        <i class="store-total-icon layui-icon layui-icon-reply-fill"></i>
+                    </div>
+                    <div class="layui-col-sm6 layui-col-md3">
+                        <div class="store-total-item nowrap" style="background:#3db9dc">
+                            <div>订单总量</div>
+                            <div>456</div>
+                            <div>已付款订单总数量</div>
+                        </div>
+                        <i class="store-total-icon layui-icon layui-icon-cart"></i>
+                    </div>
+                    <div class="layui-col-sm6 layui-col-md3">
+                        <div class="store-total-item nowrap" style="background:#f1b53d">
+                            <div>用户总量</div>
+                            <div>789</div>
+                            <div>当前用户总数量</div>
+                        </div>
+                        <i class="store-total-icon layui-icon layui-icon-user"></i>
+                    </div>
+                    <div class="layui-col-sm6 layui-col-md3">
+                        <div class="store-total-item nowrap" style="background:#ff5d48;">
+                            <div>待处理</div>
+                            <div>1,011</div>
+                            <div>待处理信息</div>
+                        </div>
+                        <i class="store-total-icon layui-icon layui-icon-notice"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-col-md4">
+        <div class="layui-card">
+            <div class="layui-card-header">日常维护</div>
+            <div class="layui-card-body layui-weihu ">
+                <div class="button-group">
+                    <a href="javascript:;" onclick="showList();"
+                       class="layui-btn layui-btn-primary layui-btn-sm">查看日志</a>
+                    <!--                    <a href="{:url('sys/view_log')}" class="layui-btn layui-btn-primary layui-btn-sm">下载日志</a>-->
+                    <!--                    <a href="{:url('sys/clear_log')}" data-title="确定要清除日志嘛？"-->
+                    <!--                       class="layui-btn layui-btn-primary layui-btn-sm">清除日志</a>-->
+                    <a href="{:url('sys/debug_open',['sys_debug'=>$sys_debug])}"
+                       class="layui-btn layui-btn-primary layui-btn-sm">{$sys_debug==1?'关闭调试':'开启调试'}</a>
+                </div>
+                <div class="log-summary">
+                    <span>日志大小：{$log_file['size']|format_bytes}</span>
+                    <span>日志数：{$log_file['count']}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{/block}
+
+{block name="js"}
+<!--日志模板展示-->
+<script type="text/html" id="view_log">
+    <div class="layui-tab layui-tab-card">
+        <ul class="layui-tab-title">
+            {{# layui.each(d, function(index, item){ }}
+            <li class="{{#if (index==0){ }} layui-this {{# } }}">{{ item.module }}模块日志</li>
+            {{# }); }}
+        </ul>
+        <div class="layui-tab-content">
+            {{# layui.each(d, function(index, item){ }}
+
+            <div class="layui-tab-item {{#if (index==0){ }} layui-show {{# } }}">
+                <table class="layui-table" lay-size="sm">
+                    <thead>
+                    <tr>
+                        <th>文件名</th>
+                        <th>日志大小</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {{# layui.each(item.list, function(index2, item2){ }}
+                    <tr>
+                        <td><a href="{:url('sys/view_log')}?file={{ item2.pathname }}"
+                               onclick="return view_log_fun(this,'{{ item2.filename }}');">{{ item2.filename }}</a></td>
+                        <td>{{ item2.size}}</td>
+                        <td>
+                            <button type="button" class="layui-btn layui-btn-primary layui-btn-sm"
+                                    onclick="view_log_delete(this,'{{ item2.pathname }}')">删除
+                            </button>
+                        </td>
+                    </tr>
+                    {{# }); }}
+                    </tbody>
+                </table>
+            </div>
+            {{# }); }}
+        </div>
+    </div>
+</script>
+
+<script type="application/javascript">
+    let layer, laytpl, $;
+    layui.use(['layer', 'laytpl', 'jquery'], function () {
+        laytpl = layui.laytpl;
+        layer = layui.layer;
+        $ = layui.$;
+    });
+
+    //查看日志列表
+    function showList() {
+        $.get("{:url('sys/view_log')}", function (res) {
+            laytpl(view_log.innerHTML).render(res.data, function (html) {
+                layer.open({
+                    type: 1,
+                    skin: 'layui-layer-black', //加上边框
+                    area: ['600px'], //宽高
+                    content: html
+                });
+            })
+        })
+        return false;
+    }
+
+    function view_log_fun(obj, title) {
+        var url = $(obj).attr('href');
+        console.log(url, '=--url')
+        ajax_open("查看日志 " + title, url);
+
+        return false;
+    }
+
+    //删除某个日志
+    function view_log_delete(obj, file) {
+        $.post("{:url('sys/view_log_delete')}", {file: file}, function (res) {
+            if (res.code == 1) {
+                $(obj).parents('tr').remove();
+            }
+            layer.msg(res.msg)
+        })
+
+        return false;
+    }
+
+    //弹框 关闭 回调事件
+    var ajax_open_end_callBack;
+
+    function ajax_open(title, url, width, height, is_full, type) {
+        type = type || 2;
+        // 最大窗口
+        var maxWidth = document.documentElement.clientWidth;
+        var maxHeigh = document.documentElement.clientHeight;
+        if (!width || width > maxWidth)
+            width = maxWidth;
+        if (!height || height > maxHeigh)
+            height = maxHeigh - 10;
+
+        if (width == undefined || width == '') {
+            width = '900px';
+        }
+        if (height == undefined || height == '') {
+            height = '700px';
+        }
+        if (width % 1 == 0) width = width + 'px'
+        if (height % 1 == 0) height = height + 'px'
+
+        //窗口小于500统一设置为 90%宽高
+        var client_w = document.body.clientWidth;
+        if (client_w < 500) {
+            width = '90%';
+            height = '90%';
+        }
+
+        var this_index = layer.open({
+            type: type,
+            skin: 'layui-layer-black',
+            title: title,
+            content: url,
+            maxmin: true,
+            area: [width, height],
+            /*,btn: ['确定', '取消']*/
+            yes: function (index, layero) {
+                //点击确认触发 iframe 内容中的按钮提交
+                /*var submit = layero.find('iframe').contents().find("#layui-submit");
+                submit.click();*/
+            },
+            end: function () {
+                //数据重载
+                // table.reload('test',{})
+            }
+        });
+        if (is_full == 1) {
+            layer.full(this_index);
+        }
+        return this_index
+    }
+</script>
+{/block}
+

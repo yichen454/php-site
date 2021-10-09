@@ -1,0 +1,212 @@
+{extend name="base" /}
+
+{block name="title"}管理中台{/block}
+
+{block name="css"}
+<style>
+    .layui-tab-item {
+        width: 100%;
+        height: 100%;
+    }
+</style>
+{/block}
+
+{block name="body"}
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo layui-hide-xs layui-bg-black">管理中台</div>
+        <!-- 头部区域（可配合layui 已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left">
+            <!-- 移动端显示 -->
+            <!--            <li class="layui-nav-item layui-show-xs-inline-block" lay-header-event="menuLeft">-->
+            <!--                <i class="layui-icon layui-icon-spread-left"></i>-->
+            <!--            </li>-->
+
+
+        </ul>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item layui-hide layui-show-md-inline-block">
+                <a href="javascript:;">
+                    <!--                    <img src="//tva1.sinaimg.cn/crop.0.0.118.118.180/5db11ff4gw1e77d3nqrv8j203b03cweg.jpg"-->
+                    <!--                         class="layui-nav-img">-->
+                    <span>{$admin_data.username}</span>
+                    {if $admin_data.role_name}
+                    <span>「{$admin_data.role_name}」</span>
+                    {/if}
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="">编辑</a></dd>
+                    <dd><a href="">清理缓存</a></dd>
+                    <dd><a href="{:url('login/logout',['id'=>$admin_data['id']])}">登出</a></dd>
+                </dl>
+            </li>
+            <li class="layui-nav-item" lay-header-event="menuRight" lay-unselect>
+                <a href="javascript:;">
+                    <i class="layui-icon layui-icon-more-vertical"></i>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+            <ul class="layui-nav layui-nav-tree" lay-filter="left" id="container-nav">
+                {volist name="menu" id="vo" key="k" offset="0" length="{$menu.length}"}
+                <li class="layui-nav-item">
+                    <a class="" href="javascript:;" lay-options='{~echo json_encode($vo)}'>{$vo.title}</a>
+                    {if condition="!empty($vo['_data'])"}
+                    <dl class="layui-nav-child">
+                        {foreach name="vo._data" item="vv"}
+                        <dd>
+                            <a href="javascript:;" lay-options='{~echo json_encode($vv)}' style="padding-left: 40px;">{$vv.title}</a>
+                            {if condition="!empty($vv['_data'])"}
+                            <dl class="layui-nav-child">
+                                {foreach name="vv._data" item="v"}
+                                <dd>
+                                    <a href="javascript:;" lay-options='{~echo json_encode($v)}'
+                                       style="padding-left: 70px;">{$v.title}</a>
+                                </dd>
+                                {/foreach}
+                            </dl>
+                            {/if}
+                        </dd>
+                        {/foreach}
+                    </dl>
+                    {/if}
+                </li>
+                {/volist}
+                <!--                <li class="layui-nav-item layui-nav-itemed">-->
+                <!--                    <a class="" href="javascript:;">menu group 1</a>-->
+                <!--                    <dl class="layui-nav-child">-->
+                <!--                        <dd><a href="javascript:;">menu 1</a></dd>-->
+                <!--                        <dd><a href="javascript:;">menu 2</a></dd>-->
+                <!--                        <dd><a href="javascript:;">menu 3</a></dd>-->
+                <!--                        <dd><a href="">the links</a></dd>-->
+                <!--                    </dl>-->
+                <!--                </li>-->
+            </ul>
+        </div>
+    </div>
+
+    <div class="layui-body">
+        <!-- 内容主体区域 -->
+        <div class="layui-tab layui-tab-brief" lay-allowClose="true" lay-filter="bodyTab"
+             style="width: 100%;height: calc(100% - 44px);">
+            <ul class="layui-tab-title">
+
+            </ul>
+            <div class="layui-tab-content" style="width: 100%;height: calc(100% - 11px);padding: 0;">
+
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-footer">
+        <!-- 底部固定区域 -->
+        ©️版权所有
+    </div>
+</div>
+{/block}
+
+{block name="js"}
+<script>
+    layui.use(['element', 'dropdown', 'layer', 'util'], function () {
+        const element = layui.element,
+            layer = layui.layer,
+            util = layui.util,
+            $ = layui.$;
+        //头部事件
+        util.event('lay-header-event', {
+            //左侧菜单事件
+            menuLeft: function (othis) {
+                layer.msg('展开左侧菜单的操作', {icon: 0});
+            },
+            menuRight: function () {
+                layer.open({
+                    type: 1,
+                    content: '<div style="padding: 15px;">右侧面板</div>',
+                    area: ['260px', '100%'],
+                    offset: 'rt', //右上角
+                    anim: 5,
+                    shadeClose: true
+                });
+            }
+        });
+        let tabArr = [];
+        element.on('nav(left)', function () {
+            let options = JSON.parse(this.getAttribute('lay-options'));
+            // console.log(options);
+
+            if (!options['_data'] || options['_data'].length === 0 || options['_level'] !== 1) {
+                if (getIndex(tabArr, options.id) === -1) {
+                    if (setTab(options) === -1) {
+                        return;
+                    }
+                }
+                element.tabChange('bodyTab', options.id);
+            } else {
+                console.log("展开");
+            }
+        });
+
+        function setTab(options) {
+            let content;
+            let url = "/" + options.name;
+            if (options['_data'].length === 0) {
+                content = '<iframe name="bodyM" src=' + url + ' style="width: 100%;height: 100%;"></iframe>';
+            } else {
+                return -1;
+            }
+            element.tabAdd('bodyTab', {
+                title: options.title,
+                content: content,
+                id: options.id
+            });
+            tabArr.push(options.id);
+        }
+
+        element.on('tabDelete(bodyTab)', function (data) {
+            // console.log(this); //当前Tab标题所在的原始DOM元素
+            // console.log(data.index); //得到当前Tab的所在下标
+            // console.log(data.elem); //得到当前的Tab大容器
+            tabArr.splice(data.index, 1);
+        });
+
+        function setDefault(index) {
+            $('#container-nav')[0].children[0].children[index].click();
+        }
+
+        setDefault(0);
+    });
+
+    function getIndex(_arr, _obj) {
+        const len = _arr.length;
+        for (let i = 0; i < len; i++) {
+            if (_arr[i] === _obj) {
+                return parseInt(i);
+            }
+        }
+        return -1;
+    }
+
+    function removeArray(_arr, _obj) {
+        const length = _arr.length;
+        for (let i = 0; i < length; i++) {
+            if (_arr[i] === _obj) {
+                if (i === 0) {
+                    _arr.shift(); //删除并返回数组的第一个元素
+                    return _arr;
+                } else if (i === length - 1) {
+                    _arr.pop();  //删除并返回数组的最后一个元素
+                    return _arr;
+                } else {
+                    _arr.splice(i, 1); //删除下标为i的元素
+                    return _arr;
+                }
+            }
+        }
+    }
+</script>
+{/block}
+

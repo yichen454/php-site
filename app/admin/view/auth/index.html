@@ -1,0 +1,191 @@
+{extend name="base" /}
+
+{block name="title"}权限{/block}
+
+{block name="css"}
+
+{/block}
+
+{block name="body"}
+<div class="layui-fluid">
+    <form action="{:url('sort')}" method="post">
+        <table class="layui-table" style="margin-top: 0;">
+            <tr>
+                <th style="width: 45px;"><b>排序</b></th>
+                <th><b>权限名</b></th>
+                <th><b>权限</b></th>
+                <th><b>菜单显示</b></th>
+                <th><b>顶部展示</b></th>
+                <th style="padding: 0 15px;line-height: 40px;"><b>操作</b> <span style="float: right"><a
+                        href="{:url('add')}" data-width="600px" data-height="450px"
+                        class="layui-btn layui-btn-sm xn_open" title="添加权限">添加权限</a></span></th>
+            </tr>
+
+            <tbody>
+            {foreach name="list" item="vo"}
+            <tr id="{$vo.id}" class="{if $vo._level>1}hide{/if} id_{$vo.id} pid_{$vo.pid} menu_list">
+                <td><input type="text" name="{$vo.id}" placeholder="排序" autocomplete="off" class="layui-input"
+                           value="{$vo.sort}" style="width: 45px;height:24px;line-height:24px;color: #999;"></td>
+                <td>
+                    <a href="javascript:;" class="open_menu_list right">
+                        {$vo._name}
+                        <i class="layui-icon layui-icon-right"></i>
+                    </a>
+
+                </td>
+                <td>{$vo.name}</td>
+                <td class="layui-form">
+                    <input type="checkbox" lay-verify="required" lay-filter="is_menu" name="is_menu" data-id="{$vo.id}"
+                           lay-skin="switch" lay-text="显示|隐藏" value="1" {if condition="$vo['is_menu'] eq 1" }checked{/if}
+                    >
+                </td>
+
+                <td class="layui-form">
+                    {if $vo.pid==0}
+                    <input type="checkbox" lay-verify="required" lay-filter="z_index" name="z_index" data-id="{$vo.id}"
+                           lay-skin="switch" lay-text="显示|隐藏" value="1" {if condition="$vo['z_index'] eq 1" }checked{/if}
+                    >
+                    {/if}
+                </td>
+
+                <td>
+                    <a href="{:url('add',array('pid'=>$vo['id']))}" data-width="600px" data-height="450px"
+                       class="layui-btn layui-btn-xs xn_open" title="添加子权限">
+                        <i class="layui-icon layui-icon-addition"></i>添加子权限
+                    </a>
+                    <a href="{:url('edit',array('id'=>$vo['id']))}" data-width="600px" data-height="450px"
+                       title="{$vo.title}" class="layui-btn layui-btn-normal layui-btn-xs xn_open">
+                        <i class="layui-icon layui-icon-edit"></i>修改
+                    </a>
+                    <a href="{:url('delete',array('id'=>$vo['id']))}" title="确认要删除【{$vo.title}】吗？"
+                       class="layui-btn layui-btn-danger layui-btn-xs xn_delete">
+                        <i class="layui-icon layui-icon-delete"></i>删除
+                    </a>
+                </td>
+            </tr>
+            {/foreach}
+            <tr>
+                <td colspan="5">
+                    <button type="submit" class="layui-btn">排序</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </form>
+</div>
+{/block}
+
+{block name="js"}
+<script type="application/javascript">
+    layui.use(['layer', 'form', 'jquery'], function () {
+        const layer = layui.layer,
+            $ = layui.$;
+        //隐藏所有二级菜单
+        // $('.hide').hide();
+        //移除所有无二级菜单的点击列表
+        $('.menu_list').each(function (k, v) {
+            var id = $(this).attr('id');
+            var length = $('.pid_' + id).length
+            if (length == 0) {
+                $(this).find('.layui-icon-right').remove();
+            }
+        })
+        //点击展开 or 隐藏下级菜单
+        $('.open_menu_list').click(function () {
+            var id = $(this).parents('tr').attr('id')
+            $('.pid_' + id).toggle();
+            $(this).children('.layui-icon').toggleClass('layui-icon-down').toggleClass('layui-icon-right')
+        })
+
+        layui.form.on('switch(is_menu)', function (data) {
+            //layer.tips('开关checked：'+ (this.checked ? 'true' : 'false'), data.othis)
+            var val = this.checked ? 1 : 0;
+            var id = $(this).attr('data-id');
+            var url = "{:url('edit')}";
+            $.post(url, {id: id, is_menu: val}, function (res) {
+                console.log(res);
+                layer.tips(res.msg, data.othis);
+            }, 'json')
+        });
+
+        layui.form.on('switch(z_index)', function (data) {
+            var val = this.checked ? 1 : 0;
+            var id = $(this).attr('data-id');
+            var url = "{:url('edit')}";
+            $.post(url, {id: id, z_index: val}, function (res) {
+                layer.tips(res.msg, data.othis);
+            }, 'json')
+        });
+
+        /**
+         * 弹出iframe
+         */
+        $('.xn_open').click(function (e) {
+            e.preventDefault();
+            // console.log(document.body.clientWidth,document.body.clientHeight ,'--宽高')
+            var url = e.currentTarget.href;
+            var title = e.currentTarget.title;
+            if (title == '') title = $(this).html();
+            var width = $(this).attr('data-width');
+            var height = $(this).attr('data-height');
+            var is_full = $(this).attr('data-full');
+            ajax_open(title, url, width, height, is_full);
+            return false;
+        });
+
+        //弹框 关闭 回调事件
+        var ajax_open_end_callBack;
+
+        function ajax_open(title, url, width, height, is_full, type) {
+            type = type || 2;
+            // 最大窗口
+            var maxWidth = document.documentElement.clientWidth;
+            var maxHeigh = document.documentElement.clientHeight;
+            if (!width || width > maxWidth)
+                width = maxWidth;
+            if (!height || height > maxHeigh)
+                height = maxHeigh - 10;
+
+            if (width == undefined || width == '') {
+                width = '900px';
+            }
+            if (height == undefined || height == '') {
+                height = '700px';
+            }
+            if (width % 1 == 0) width = width + 'px'
+            if (height % 1 == 0) height = height + 'px'
+
+            //窗口小于500统一设置为 90%宽高
+            var client_w = document.body.clientWidth;
+            if (client_w < 500) {
+                width = '90%';
+                height = '90%';
+            }
+
+            var this_index = layer.open({
+                type: type,
+                skin: 'layui-layer-black',
+                title: title,
+                content: url,
+                maxmin: true,
+                area: [width, height],
+                /*,btn: ['确定', '取消']*/
+                yes: function (index, layero) {
+                    //点击确认触发 iframe 内容中的按钮提交
+                    /*var submit = layero.find('iframe').contents().find("#layui-submit");
+                    submit.click();*/
+                },
+                end: function () {
+                    //数据重载
+                    // table.reload('test',{})
+                }
+            });
+            if (is_full == 1) {
+                layer.full(this_index);
+            }
+            return this_index
+        }
+    });
+</script>
+{/block}
+

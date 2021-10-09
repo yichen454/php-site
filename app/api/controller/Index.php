@@ -2,12 +2,16 @@
 
 namespace app\api\controller;
 
-use app\BaseController;
+use app\common\controller\ApiBase;
 
-class Index extends BaseController
+class Index extends ApiBase
 {
     public function index()
     {
+        $param = $this->request->param();
+        if (!empty($param['pp'])) {
+            $this->success("success", null, $param['pp']);
+        }
         return 'hello api';
     }
 

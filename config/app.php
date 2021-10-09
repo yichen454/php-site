@@ -20,10 +20,14 @@ return [
     // 域名绑定（自动多应用模式有效）
     'domain_bind' => [],
     // 禁止URL访问的应用列表（自动多应用模式有效）
-    'deny_app_list' => [],
+    'deny_app_list' => ['common'],
 
     // 异常页面的模板文件
-    'exception_tmpl' => app()->getThinkPath() . 'tpl/think_exception.tpl',
+    'exception_tmpl' => env('app_debug') == 1 ? app()->getThinkPath() . 'tpl/think_exception.tpl' : app()->getBasePath() . 'common' . DIRECTORY_SEPARATOR . 'tpl' . DIRECTORY_SEPARATOR . 'think_exception.tpl',
+    // 跳转页面的成功模板文件
+    'dispatch_success_tmpl' => app()->getBasePath() . 'common' . DIRECTORY_SEPARATOR . 'tpl' . DIRECTORY_SEPARATOR . 'dispatch_jump.tpl',
+    // 跳转页面的失败模板文件
+    'dispatch_error_tmpl' => app()->getBasePath() . 'common' . DIRECTORY_SEPARATOR . 'tpl' . DIRECTORY_SEPARATOR . 'dispatch_jump.tpl',
 
     // 错误显示信息,非调试模式有效
     'error_message' => '页面错误！请稍后再试～',

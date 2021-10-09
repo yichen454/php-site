@@ -1,0 +1,151 @@
+{extend name="base"}
+
+{block name="title"}管理员{/block}
+
+{block name="css"}
+
+{/block}
+
+{block name="body"}
+<div class="layui-fluid">
+    <table class="layui-table" style="margin-top: 0;">
+        <tr>
+            <th><b>用户名</b></th>
+            <th><b>用户组</b></th>
+            <th><b>状态</b></th>
+            <th style="padding: 0 15px;line-height: 40px;"><b>操作</b>
+                <span style="float: right">
+                    <a href="{:url('add')}"
+                       data-width="600px"
+                       data-height="450px"
+                       class="layui-btn layui-btn-sm xn_open"
+                       title="添加管理员">添加管理员</a>
+                </span>
+            </th>
+        </tr>
+
+        <tbody>
+        {foreach name="list" item="vo"}
+        <tr>
+            <td>{$vo.username}</td>
+            <td>
+                {foreach name="vo.auth_group_access" item="v"}
+                <span class="layui-badge layui-bg-orange">{$v.title}</span>
+                {/foreach}
+            </td>
+            <td class="layui-form">
+                {if condition="$vo['status'] eq 1" }
+                <input type="checkbox" lay-verify="required" lay-filter="status" name="status" data-id="{$vo.id}"
+                       lay-skin="switch" lay-text="正常|禁止" value="1" checked>
+                {else}
+                <input type="checkbox" lay-verify="required" lay-filter="status" name="status" data-id="{$vo.id}"
+                       lay-skin="switch" lay-text="正常|禁止" value="1">
+                {/if}
+            </td>
+            <td>
+                <a href="{:url('edit',array('id'=>$vo['id']))}" data-width="600px" data-height="450px" title="修改用户信息"
+                   class="layui-btn layui-btn-normal layui-btn-xs xn_open">
+                    <i class="layui-icon layui-icon-edit"></i>修改
+                </a>
+                {if condition="$vo['id'] neq 1"}
+                <a href="{:Url('delete',array('id'=>$vo['id']))}" title="确认要删除【{$vo.username}】吗？"
+                   class="layui-btn layui-btn-danger layui-btn-xs xn_delete">
+                    <i class="layui-icon layui-icon-delete"></i>删除
+                </a>
+                {/if}
+            </td>
+        </tr>
+        {/foreach}
+        </tbody>
+    </table>
+</div>
+{/block}
+
+{block name="js"}
+<script type="application/javascript">
+    layui.use(['layer', 'form', 'jquery'], function () {
+        const layer = layui.layer,
+            $ = layui.$;
+
+        layui.form.on('switch(status)', function (data) {
+            //layer.tips('开关checked：'+ (this.checked ? 'true' : 'false'), data.othis)
+            var val = this.checked ? 1 : 0;
+            var id = $(this).attr('data-id');
+            var url = "{:url('edit')}";
+            $.post(url, {id: id, status: val}, function (res) {
+                console.log(res);
+                layer.tips(res.msg, data.othis);
+            }, 'json')
+        });
+
+        /**
+         * 弹出iframe
+         */
+        $('.xn_open').click(function (e) {
+            e.preventDefault();
+            // console.log(document.body.clientWidth,document.body.clientHeight ,'--宽高')
+            var url = e.currentTarget.href;
+            var title = e.currentTarget.title;
+            if (title == '') title = $(this).html();
+            var width = $(this).attr('data-width');
+            var height = $(this).attr('data-height');
+            var is_full = $(this).attr('data-full');
+            ajax_open(title, url, width, height, is_full);
+            return false;
+        });
+
+        //弹框 关闭 回调事件
+        var ajax_open_end_callBack;
+
+        function ajax_open(title, url, width, height, is_full, type) {
+            type = type || 2;
+            // 最大窗口
+            var maxWidth = document.documentElement.clientWidth;
+            var maxHeigh = document.documentElement.clientHeight;
+            if (!width || width > maxWidth)
+                width = maxWidth;
+            if (!height || height > maxHeigh)
+                height = maxHeigh - 10;
+
+            if (width == undefined || width == '') {
+                width = '900px';
+            }
+            if (height == undefined || height == '') {
+                height = '700px';
+            }
+            if (width % 1 == 0) width = width + 'px'
+            if (height % 1 == 0) height = height + 'px'
+
+            //窗口小于500统一设置为 90%宽高
+            var client_w = document.body.clientWidth;
+            if (client_w < 500) {
+                width = '90%';
+                height = '90%';
+            }
+
+            var this_index = layer.open({
+                type: type,
+                skin: 'layui-layer-black',
+                title: title,
+                content: url,
+                maxmin: true,
+                area: [width, height],
+                /*,btn: ['确定', '取消']*/
+                yes: function (index, layero) {
+                    //点击确认触发 iframe 内容中的按钮提交
+                    /*var submit = layero.find('iframe').contents().find("#layui-submit");
+                    submit.click();*/
+                },
+                end: function () {
+                    //数据重载
+                    // table.reload('test',{})
+                }
+            });
+            if (is_full == 1) {
+                layer.full(this_index);
+            }
+            return this_index
+        }
+    });
+</script>
+{/block}
