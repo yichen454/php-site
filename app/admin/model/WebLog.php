@@ -6,9 +6,9 @@ use think\db\BaseQuery;
 
 class WebLog extends BaseModel
 {
-    //protected $autoWriteTimestamp = true;
+    protected $autoWriteTimestamp = true;
 
-    public $name = 'web_log';
+    public $table = 'admin_web_log';
 
     //获取后台用户
     function getAdminUser()
@@ -20,7 +20,10 @@ class WebLog extends BaseModel
     //数据查询
     function getList($param)
     {
-        $order = $param['order'] ?: 'id desc';
+        $order = 'id desc';
+        if (!empty($param['order'])) {
+            $order = $param['order'];
+        }
         $model = $this->order($order);
         $this->getListWhere($model, $param);
         $list = $model->paginate($param['limit']);
@@ -68,57 +71,57 @@ class WebLog extends BaseModel
         }
         $where = [];
 
-        if ($param['id']) {
+        if (!empty($param['id'])) {
             $where['id'] = $param['id'];
         }
 
-        if ($param['uid']) {
+        if (!empty($param['uid'])) {
             $where['uid'] = $param['uid'];
         }
 
-        if ($param['ip']) {
+        if (!empty($param['ip'])) {
             $where['ip'] = $param['ip'];
         }
 
-        if ($param['location']) {
+        if (!empty($param['location'])) {
             $where['location'] = $param['location'];
         }
 
-        if ($param['os']) {
+        if (!empty($param['os'])) {
             $where['os'] = $param['os'];
         }
 
-        if ($param['browser']) {
+        if (!empty($param['browser'])) {
             $where['browser'] = $param['browser'];
         }
 
-        if ($param['url']) {
+        if (!empty($param['url'])) {
             $where['url'] = $param['url'];
         }
 
-        if ($param['module']) {
+        if (!empty($param['module'])) {
             $where['module'] = $param['module'];
         }
 
-        if ($param['controller']) {
+        if (!empty($param['controller'])) {
             $where['controller'] = $param['controller'];
         }
 
-        if ($param['action']) {
+        if (!empty($param['action'])) {
             $where['action'] = $param['action'];
         }
 
-        if ($param['method']) {
+        if (!empty($param['method'])) {
             $where['method'] = $param['method'];
         }
 
-        if ($param['data']) {
+        if (!empty($param['data'])) {
             $where['data'] = $param['data'];
         }
 
 
 //        //检索查询
-        if ($param['search_key']) {
+        if (!empty($param['search_key'])) {
             $model->whereLike('url', '%' . $param['search_key'] . '%');
 //            $where['id'] = $param['search_key'];
         }
@@ -132,7 +135,6 @@ class WebLog extends BaseModel
         'id' => 'ID',
         'uid' => '用户ID',
         'ip' => 'IP',
-        'location' => '访客地址',
         'os' => '操作系统',
         'browser' => '浏览器',
         'url' => 'url',
@@ -141,7 +143,7 @@ class WebLog extends BaseModel
         'action' => '操作方法',
         'method' => '请求类型',
         'data' => '参数',
-        'response_data' => '响应数据',
+        'response_status' => '响应状态',
         'otime' => '操作时间',
 
     ];

@@ -2,6 +2,7 @@
 
 return [
     'default' => 'admin',
+
     'connections' => [
         'admin' => [
             // 数据库类型

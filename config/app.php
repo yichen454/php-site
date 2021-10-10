@@ -20,7 +20,7 @@ return [
     // 域名绑定（自动多应用模式有效）
     'domain_bind' => [],
     // 禁止URL访问的应用列表（自动多应用模式有效）
-    'deny_app_list' => ['common'],
+    'deny_app_list' => ['common', 'middleware'],
 
     // 异常页面的模板文件
     'exception_tmpl' => env('app_debug') == 1 ? app()->getThinkPath() . 'tpl/think_exception.tpl' : app()->getBasePath() . 'common' . DIRECTORY_SEPARATOR . 'tpl' . DIRECTORY_SEPARATOR . 'think_exception.tpl',

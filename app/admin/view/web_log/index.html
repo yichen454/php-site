@@ -10,7 +10,37 @@
 <div class="layui-fluid">
     <div class="layui-card">
         <div class=" layui-card-header layuiadmin-card-header-auto">
-            {include file="web_log/index_form"}
+            <form id="list-filter" class="layui-form form-search" method="get">
+                <div class="layui-form-item">
+                    <div class="layui-inline">
+                        <select name="method" multiple>
+                            <option value="">请选择请求类型</option>
+                            {foreach name="methodList" item="vo" key="key"}
+                            <option value="{$key}">{$vo}</option>
+                            {/foreach}
+                        </select>
+
+                    </div>
+
+                    <div class="layui-inline">
+                        <select name="module" multiple>
+                            <option value="">请选择请求模块</option>
+                            {foreach name="moduleList" item="vo" key="key"}
+                            <option value="{$key}">{$vo}</option>
+                            {/foreach}
+                        </select>
+                    </div>
+
+                    <div class="layui-inline">
+                        <div class="layui-input-inline">
+                            <input type="text" name="search_key" value="" placeholder="请输入操作地址" class="layui-input ">
+                        </div>
+                        <button type="button" title="搜索" class="layui-btn  layui-btn-sm ajax-search-form2">
+                            <i class="layui-icon layui-icon-search layuiadmin-button-btn"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
         <div class="layui-card-body">
             <table class="layui-hide layui-table" id="test" lay-filter="test"></table>
@@ -28,6 +58,360 @@
 
 <script type="application/javascript">
 
+
+    layui.use(['layer', 'form', 'jquery'], function () {
+        var table = layui.table, form = layui.form, laytpl = layui.laytpl;
+        const $ = layui.jquery;
+        var cols = [
+            {"type": "checkbox"},
+            {"field": "id", "title": "ID", width: 100},
+            {"field": "uid", "title": "用户ID", width: 100},
+            {"field": "module", "title": "模块", width: 100},
+            {"field": "method", "title": "请求类型", width: 100},
+            {"field": "url", "title": "操作地址"},
+            {"field": "otime_text", "title": "操作时间", width: 200},
+            // {"field":"ip","title":"IP"},
+            // {"field":"os","title":"操作系统"},
+            // {"field":"browser","title":"浏览器"},
+            // {"field":"controller","title":"控制器"},
+            // {"field":"action","title":"操作方法"},
+            // {"field":"data","title":"参数"},
+            {"title": "操作", "templet": "#apiListBar", "width": 200}
+        ];
+
+        //表格初始化
+        table.render(getLayuiInit('#test', 'index.html', cols));
+
+        //监听单行工具条
+        //监听单行工具条
+        table.on('tool(test)', (obj) => {
+            var data = obj.data;
+            if (obj.event === 'del') {
+                layuiApiDel(data, () => {
+                    obj.del()
+                })
+            } else if (obj.event === 'edit') {
+                //窗口编辑
+                laytpl(webLogInfo.innerHTML).render(data, function (html) {
+                    // 处理你的业务逻辑
+                    layer.open({
+                        type: 1,
+                        title: '日志详情',
+                        skin: 'layui-layer-black', //加上边框
+                        area: ['600px', '400px'], //宽高
+                        content: html
+                    })
+                })
+            }
+        });
+
+        //表格顶部工具栏事件
+        table.on('toolbar(test)', (obj) => {
+            var checkStatus = table.checkStatus(obj.config.id); //获取选中行状态
+            switch (obj.event) {
+                //批量删除
+                case 'dels':
+                    var data = checkStatus.data;  //获取选中行数据
+                    if (data.length == 0) {
+                        layer.msg('请选择要删除的数据！', {icon: 5});
+                        return;
+                    }
+                    layuiApiDel(data, () => {
+                        table.reload('test', {})
+                    });
+                    break;
+                case 'export':
+                    apiExport();
+                    break;
+                case 'edit':
+                    //窗口编辑
+                    ajax_open('网站日志编辑', 'edit.html', '650', '765')
+                    //新页面编辑
+                    //[window.open]('edit.html','_self');
+                    break;
+            }
+            ;
+        });
+
+
+        //监听单元格编辑
+        table.on('edit(test)', OnLayuiEdit);
+
+        //触发排序事件
+        table.on('sort(test)', OnLayuiOrder);
+
+        //监听状态操作
+        form.on('switch(switchTpl)', OnLayuiSwitch);
+
+        //监听数据提交事件
+        form.on('submit(save)', OnLayuiSave);
+
+        var loading = {
+            loadingInstance: null,
+            timer: 0,//网络延迟时 才显示加载中
+            open: function () {
+                if (this.timer) {
+                    return;
+                }
+                this.timer = setTimeout(() => {
+                    this.load();
+                }, 300)
+            },
+            load: function () {
+                if (this.loadingInstance == null) {
+                    this.loadingInstance = layui.layer.load(1);
+                }
+            },
+            close: function () {
+                if (this.timer) {
+                    clearTimeout(this.timer)
+                    this.timer = false;
+                }
+                if (this.loadingInstance !== null) {
+                    layui.layer.closeAll('loading');
+                }
+                this.loadingInstance = null
+            }
+        }
+
+//layui 表格操作方法
+        var tableData;
+
+        function getLayuiInit(elem, api, cols) {
+            var toolbar = $('#toolbarDemo').length ? '#toolbarDemo' : false;
+            return {
+                elem: elem,
+                url: api,
+                //默认最小宽度
+                cellMinWidth: 80,
+                //头部工具栏
+                toolbar: toolbar,
+                defaultToolbar: [],
+                autoSort: false, //关闭前端默认排序
+                page: true,
+                cols: [cols],
+                //数据回调解析
+                parseData: function (res) {
+                    tableData = res.data;
+                    return {
+                        code: res.code == 1 ? 0 : 1, //解析接口状态
+                        msg: res.msg, //解析提示文本
+                        count: res.data.total, //解析数据长度
+                        data: res.data.data //解析数据列表
+                    }
+                },
+                //当前数据 当前页码 当前数据条数
+                done: function (res, curr, count) {
+                    //记录表格数据
+                    tableData = res.data
+                }
+            }
+        }
+
+
+//表单删除操作
+        function layuiApiDel(data, callBack) {
+            var url = data.deleteUrl || 'delete.html';
+            if (data.length > 0) {
+                //删除多条
+                var tip = '确定要删除这' + data.length + '条信息吗？'
+                var delId = [];
+                delId = data.map(x => x.id).join(',')
+            } else {
+                //删除单条
+                var tip = '确定要删除[ID:' + data.id + ']这条信息吗？'
+                var delId = data.id
+            }
+
+            //询问框
+            layer.confirm(tip, {
+                title: "操作提示",
+                skin: 'layui-layer-black',
+                icon: 7,
+                btn: ['确定', '取消'] //按钮
+            }, function () {
+                layer.closeAll();
+                loading.open()
+                $.post(url, {id: delId}, function (data) {
+                    loading.close();
+                    if (data.code == 1) {
+                        callBack && callBack();
+                    } else {
+                        xn_alert(data.msg);
+                    }
+                }, 'json')
+            }, function () {
+
+            })
+        }
+
+//表单编辑
+        function layuiApiEdit(html, title, width, height) {
+            title = title || '编辑'
+            var width, height;
+            if (width == undefined || width == '') {
+                width = '900px';
+            }
+            if (height == undefined || height == '') {
+                height = '700px';
+            }
+
+            //窗口小于500统一设置为 90%宽高
+            var client_w = document.body.clientWidth;
+            if (client_w < 500) {
+                width = '90%';
+                height = '90%';
+            }
+            var this_index = layer.open({
+                type: 1
+                , skin: 'layui-layer-black'
+                , title: title
+                , content: html
+                , maxmin: true
+                , area: [width, height]
+                /*,btn: ['确定', '取消']*/
+            });
+            return this_index;
+        }
+
+
+//监听状态改变操作
+        function OnLayuiSwitch(obj) {
+            loading.open()
+            $.post('edit', {
+                id: this.value,
+                [this.name]: obj.elem.checked ? 1 : 0,
+            }, function (res) {
+                loading.close();
+                if (res.code == 1) {
+                    layer.tips(res.msg, obj.othis);
+                } else {
+                    layer.tips(res.msg, obj.othis);
+                }
+            })
+        }
+
+//监听内容改变操作
+        function OnLayuiEdit(obj) {
+            loading.open()
+            $.post('edit', {
+                id: obj.data.id,
+                [obj.field]: obj.value,
+            }, function (res) {
+                loading.close();
+                if (res.code == 1) {
+                    layer.msg(res.msg);
+                } else {
+                    layer.msg(res.msg);
+                }
+            })
+        }
+
+
+//监听列表排序功能
+        function OnLayuiOrder(obj) {
+            layui.table.reload('test', {
+                initSort: obj //记录初始排序，如果不设的话，将无法标记表头的排序状态。
+                , where: { //请求参数（注意：这里面的参数可任意定义，并非下面固定的格式）
+                    order: obj.field.replace('_text', '') + ' ' + obj.type //排序方式
+                }
+            });
+        }
+
+//监听数据提交
+        function OnLayuiSave(data) {
+            loading.open();
+            $.post('edit', data.field, function (res) {
+                loading.close();
+                if (res.code == 1) {
+                    layer.msg(res.msg, {icon: 1, time: 1000}, () => {
+                        layer.closeAll()
+                        table.reload('test', {})
+                    })
+                    //数据刷新
+                } else {
+                    layer.msg(res.msg, {icon: 5})
+                }
+            })
+            return false;
+        }
+
+//列表搜索执行重载
+        function LayuiReload() {
+            var params = $("#list-filter").serializeArray();
+            var newParams = {}
+            for (var i in params) {
+                newParams[params[i].name] = params[i].value;
+            }
+            layui.table.reload('test', {
+                page: {
+                    curr: 1 //重新从第 1 页开始
+                }
+                , where: newParams
+            }, 'data');
+        }
+
+//点击搜索框
+        $('.ajax-search-form2').on('click', function () {
+            LayuiReload()
+        });
+
+
+// 鼠标滑过预览img
+        var mouseenter_src = 0;
+        $(document).on('mouseenter', '.head_img', function (obj) {
+            if (mouseenter_src == obj.target.src || !obj.target.src)
+                return;
+            if (!obj.target.src || obj.target.src.indexOf('notpic.png')) {
+                return;
+            }
+            mouseenter_src = obj.target.src
+            setMouseenterPic(obj.target.src, obj.pageX + 30, obj.pageY - 100)
+        }).on('mouseleave', '.head_img', function () {
+            setMouseenterPic('')
+            mouseenter_src = '';
+        });
+
+//设置大图预览
+        function setMouseenterPic(src, x, y) {
+            if (!src) {
+                $('.mouseenter_box').css({display: 'none'});
+                return;
+            }
+            $('.mouseenter_pic').attr('src', src);
+            $('.mouseenter_box').css({"top": y, left: x, display: 'block'});
+        }
+
+// 鼠标滑过操作列
+        var tip_index = 0;
+        $(document).on('mouseenter', '#proStatus', function () {
+            tip_index = layer.tips('项目情况', '#proStatus', {time: 0});
+        }).on('mouseleave', '#proStatus', function () {
+            layer.close(tip_index);
+        });
+
+        var tipsVal;
+
+//打开提示
+        function showTips(name, field, valueField) {
+            var introduce = '';
+            var list = tableData;
+            var node = "#test" + name;
+            console.log(tableData, field);
+            for (var i = 0; i < list.length; i++) {
+                if (name === list[i][field]) {
+                    introduce = list[i][valueField];
+                }
+            }
+            if (introduce != '')
+                tipsVal = layer.tips("<div style='color:#fff;'>" + introduce + "</div>", node, {tips: [2]});
+        }
+
+//关闭提示
+        function closeTips() {
+            layer.close(tipsVal);
+        }
+    });
 </script>
 {/block}
 

@@ -58,8 +58,6 @@ class WebLog extends AdminBase
         }
         $reData = [
             'data' => $data,
-
-
         ];
         return view('index_edit', $reData);
     }

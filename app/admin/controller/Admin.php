@@ -28,7 +28,14 @@ class Admin extends AdminBase
         if ($this->request->isPost()) {
             $param = $this->request->param();
             $param['password'] = co_encrypt($param['password']);
-            $insert_id = Db::name('admin')->strict(false)->insertGetId($param);
+
+            $admin = AdminModel::create([
+                'username' => $param['username'],
+                'password' => $param['password'],
+                'register_time' => time()
+            ]);
+            $insert_id = $admin->id;
+
             if ($insert_id) {
                 if (!empty($param['group_ids'])) {
                     foreach ($param['group_ids'] as $group_id) {
@@ -102,7 +109,7 @@ class Admin extends AdminBase
         !($id > 1) && $this->error('参数错误');
         AuthGroupAccess::where('admin_id', $id)->delete();
         AdminModel::destroy($id);
-        $this->success('删除成功');
+        $this->success('删除成功', '/admin/admin/index');
     }
 
     /**
