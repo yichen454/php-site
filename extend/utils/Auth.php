@@ -40,7 +40,7 @@ class Auth
         if (!$this->_config['AUTH_ON']) {
             return true;
         }
-        if ($name == 'admin/index/index') {
+        if ($name == 'admin/index/index' || $name == 'admin/index/menu') {
             return true;
         }
 

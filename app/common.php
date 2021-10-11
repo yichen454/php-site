@@ -42,6 +42,20 @@ if (!function_exists('deldir')) {
         @rmdir($path);
     }
 }
+if (!function_exists('setENV')) {
+    /**
+     * 设置动态配置项
+     * @param $name  配置名
+     * @param $value 配置值
+     */
+    function setENV($name, $value)
+    {
+        $env = file_get_contents(ROOT_PATH . '.env');
+        $pattern = "#{$name}\s*\=\s*.*?(\s+)#";
+        $env = preg_replace($pattern, "{$name} = " . $value . '${1}', $env);
+        @file_put_contents(ROOT_PATH . '.env', $env);
+    }
+}
 
 if (!function_exists('format_bytes')) {
     /**

@@ -3,210 +3,193 @@
 {block name="title"}管理中台{/block}
 
 {block name="css"}
-<style>
-    .layui-tab-item {
-        width: 100%;
-        height: 100%;
+<!-- 加 载 样 式-->
+<link rel="stylesheet" href="/static/admin/css/load.css"/>
+<!-- 布 局 样 式 -->
+<link rel="stylesheet" href="/static/admin/css/admin.css"/>
+<script>
+    if (window != top) {
+        top.location.href = location.href;
     }
-</style>
+</script>
 {/block}
 
 {block name="body"}
+<!-- 结 构 代 码 -->
+<body class="layui-layout-body pear-admin">
+<!-- 布 局 框 架 -->
 <div class="layui-layout layui-layout-admin">
     <div class="layui-header">
-        <div class="layui-logo layui-hide-xs layui-bg-black">管理中台</div>
-        <!-- 头部区域（可配合layui 已有的水平导航） -->
+        <!-- 顶 部 左 侧 功 能 -->
         <ul class="layui-nav layui-layout-left">
-            <!-- 移动端显示 -->
-            <!--            <li class="layui-nav-item layui-show-xs-inline-block" lay-header-event="menuLeft">-->
-            <!--                <i class="layui-icon layui-icon-spread-left"></i>-->
-            <!--            </li>-->
-
-
+            <li class="collaspe layui-nav-item"><a href="#" class="layui-icon layui-icon-shrink-right"></a></li>
+            <li class="refresh layui-nav-item"><a href="#" class="layui-icon layui-icon-refresh-1" loading=600></a></li>
         </ul>
-        <ul class="layui-nav layui-layout-right">
-            <li class="layui-nav-item layui-hide layui-show-md-inline-block">
+        <!-- 顶 部 右 侧 菜 单 -->
+        <div id="control" class="layui-layout-control"></div>
+        <ul class="layui-nav layui-layout-right" lay-filter="layui_nav_right">
+            <li class="layui-nav-item layui-hide-xs"><a href="#"
+                                                        class="fullScreen layui-icon layui-icon-screen-full"></a></li>
+            <li class="layui-nav-item layui-hide-xs"><a href="#" class="layui-icon layui-icon-website"></a></li>
+            <li class="layui-nav-item user">
+                <!-- 头 像 -->
                 <a href="javascript:;">
-                    <!--                    <img src="//tva1.sinaimg.cn/crop.0.0.118.118.180/5db11ff4gw1e77d3nqrv8j203b03cweg.jpg"-->
-                    <!--                         class="layui-nav-img">-->
-                    <span>{$admin_data.username}</span>
-                    {if $admin_data.role_name}
-                    <span>「{$admin_data.role_name}」</span>
-                    {/if}
+                    <img src="/static/admin/images/avatar.jpg" class="layui-nav-img">
+                    {$admin_data.username}
                 </a>
+                <!-- 功 能 菜 单 -->
                 <dl class="layui-nav-child">
-                    <dd><a href="">编辑</a></dd>
-                    <dd><a href="">清理缓存</a></dd>
-                    <dd><a href="{:url('login/logout',['id'=>$admin_data['id']])}">登出</a></dd>
+                    <dd>
+                        <a href="javascript:void(0);" class="password">
+                            修改密码
+                        </a>
+                    </dd>
+                    <dd>
+                        <a href="javascript:void(0);" class="cache">
+                            清理缓存
+                        </a>
+                    </dd>
+                    <dd>
+                        <a href="{:url('login/logout')}" class="logout">
+                            退出登录
+                        </a>
+                    </dd>
                 </dl>
             </li>
-            <li class="layui-nav-item" lay-header-event="menuRight" lay-unselect>
-                <a href="javascript:;">
-                    <i class="layui-icon layui-icon-more-vertical"></i>
-                </a>
-            </li>
+            <!-- 主 题 配 置 -->
+            <li class="layui-nav-item setting"><a href="#" class="layui-icon layui-icon-more-vertical"></a></li>
         </ul>
     </div>
-
+    <!-- 侧 边 区 域 -->
     <div class="layui-side layui-bg-black">
+        <!-- 顶 部 图 标 -->
+        <div class="layui-logo">
+            <!-- 图 表 -->
+            <img class="logo"></img>
+            <!-- 标 题 -->
+            <span class="title"></span>
+        </div>
+        <!-- 侧 边 菜 单 -->
         <div class="layui-side-scroll">
-            <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
-            <ul class="layui-nav layui-nav-tree" lay-filter="left" id="container-nav">
-                {volist name="menu" id="vo" key="k" offset="0" length="{$menu.length}"}
-                <li class="layui-nav-item">
-                    <a class="" href="javascript:;" lay-options='{~echo json_encode($vo)}'>{$vo.title}</a>
-                    {if condition="!empty($vo['_data'])"}
-                    <dl class="layui-nav-child">
-                        {foreach name="vo._data" item="vv"}
-                        <dd>
-                            <a href="javascript:;" lay-options='{~echo json_encode($vv)}' style="padding-left: 40px;">{$vv.title}</a>
-                            {if condition="!empty($vv['_data'])"}
-                            <dl class="layui-nav-child">
-                                {foreach name="vv._data" item="v"}
-                                <dd>
-                                    <a href="javascript:;" lay-options='{~echo json_encode($v)}'
-                                       style="padding-left: 70px;">{$v.title}</a>
-                                </dd>
-                                {/foreach}
-                            </dl>
-                            {/if}
-                        </dd>
-                        {/foreach}
-                    </dl>
-                    {/if}
-                </li>
-                {/volist}
-                <!--                <li class="layui-nav-item layui-nav-itemed">-->
-                <!--                    <a class="" href="javascript:;">menu group 1</a>-->
-                <!--                    <dl class="layui-nav-child">-->
-                <!--                        <dd><a href="javascript:;">menu 1</a></dd>-->
-                <!--                        <dd><a href="javascript:;">menu 2</a></dd>-->
-                <!--                        <dd><a href="javascript:;">menu 3</a></dd>-->
-                <!--                        <dd><a href="">the links</a></dd>-->
-                <!--                    </dl>-->
-                <!--                </li>-->
-            </ul>
+            <div id="sideMenu"></div>
         </div>
     </div>
-
+    <!-- 视 图 页 面 -->
     <div class="layui-body">
-        <!-- 内容主体区域 -->
-        <div class="layui-tab layui-tab-brief" lay-allowClose="true" lay-filter="bodyTab"
-             style="width: 100%;height: calc(100% - 44px);">
-            <ul class="layui-tab-title">
-
-            </ul>
-            <div class="layui-tab-content" style="width: 100%;height: calc(100% - 11px);padding: 0;">
-
-            </div>
-        </div>
-    </div>
-
-    <div class="layui-footer">
-        <!-- 底部固定区域 -->
-        ©️版权所有
+        <!-- 内 容 页 面 -->
+        <div id="content"></div>
     </div>
 </div>
+<!-- 遮 盖 层 -->
+<div class="pear-cover"></div>
+<!-- 移 动 端 便 捷 操 作 -->
+<div class="pear-collasped-pe collaspe"><a href="#" class="layui-icon layui-icon-shrink-right"></a></div>
+<!-- 加 载 动 画-->
+<div class="loader-main">
+    <div class="loader"></div>
+</div>
+</body>
 {/block}
 
 {block name="js"}
-<script>
-    layui.use(['element', 'dropdown', 'layer', 'util'], function () {
-        const element = layui.element,
-            layer = layui.layer,
-            util = layui.util,
-            $ = layui.$;
-        //头部事件
-        util.event('lay-header-event', {
-            //左侧菜单事件
-            menuLeft: function (othis) {
-                layer.msg('展开左侧菜单的操作', {icon: 0});
+<script type="application/javascript">
+    layui.use(['admin', 'jquery', 'layer', 'element'], function () {
+        const $ = layui.jquery;
+        const layer = layui.layer;
+        const layelem = layui.element;
+        const admin = layui.admin;
+
+        admin.render({
+            "logo": {
+                "title": "Admin",
+                "image": "/static/admin/images/logo.png"
             },
-            menuRight: function () {
-                layer.open({
-                    type: 1,
-                    content: '<div style="padding: 15px;">右侧面板</div>',
-                    area: ['260px', '100%'],
-                    offset: 'rt', //右上角
-                    anim: 5,
-                    shadeClose: true
-                });
-            }
-        });
-        let tabArr = [];
-        element.on('nav(left)', function () {
-            let options = JSON.parse(this.getAttribute('lay-options'));
-            // console.log(options);
-
-            if (!options['_data'] || options['_data'].length === 0 || options['_level'] !== 1) {
-                if (getIndex(tabArr, options.id) === -1) {
-                    if (setTab(options) === -1) {
-                        return;
-                    }
+            "menu": {
+                "data": "{:url('index/menu')}",
+                "accordion": true,
+                "control": false,
+                "select": "0"
+            },
+            "tab": {
+                "muiltTab": true,
+                "keepState": true,
+                "session": true,
+                "tabMax": 30,
+                "index": {
+                    "id": "0",
+                    "href": "{:url('index/home')}",
+                    "title": "首页"
                 }
-                element.tabChange('bodyTab', options.id);
-            } else {
-                console.log("展开");
+            },
+            "theme": {
+                "defaultColor": "2",
+                "defaultMenu": "dark-theme",
+                "allowCustom": true
+            },
+            "colors": [{
+                "id": "1",
+                "color": "#FF5722"
+            },
+                {
+                    "id": "2",
+                    "color": "#5FB878"
+                },
+                {
+                    "id": "3",
+                    "color": "#1E9FFF"
+                }, {
+                    "id": "4",
+                    "color": "#FFB800"
+                }, {
+                    "id": "5",
+                    "color": "darkgray"
+                }
+            ],
+            "links": [
+                {
+                    "icon": "layui-icon layui-icon-auz",
+                    "title": "A站",
+                    "href": "#"
+                },
+                {
+                    "icon": "layui-icon layui-icon-auz",
+                    "title": "B站",
+                    "href": "#"
+                },
+                {
+                    "icon": "layui-icon layui-icon-auz",
+                    "title": "C站",
+                    "href": "#"
+                }
+            ],
+            "other": {
+                "keepLoad": 100
+            },
+            "header": {
+                message: false
             }
         });
 
-        function setTab(options) {
-            let content;
-            let url = "/" + options.name;
-            if (options['_data'].length === 0) {
-                content = '<iframe name="bodyM" src=' + url + ' style="width: 100%;height: 100%;"></iframe>';
-            } else {
-                return -1;
-            }
-            element.tabAdd('bodyTab', {
-                title: options.title,
-                content: content,
-                id: options.id
-            });
-            tabArr.push(options.id);
-        }
-
-        element.on('tabDelete(bodyTab)', function (data) {
-            // console.log(this); //当前Tab标题所在的原始DOM元素
-            // console.log(data.index); //得到当前Tab的所在下标
-            // console.log(data.elem); //得到当前的Tab大容器
-            tabArr.splice(data.index, 1);
+        layelem.on('nav(layui_nav_right)', function (elem) {
+            // if ($(elem).hasClass('password')) {
+            //     layer.open({
+            //         type: 2,
+            //         maxmin: true,
+            //         title: '修改密码',
+            //         shade: 0.1,
+            //         area: ['300px', '300px'],
+            //         content: '{$Request.root}/index/pass'
+            //     });
+            // } else if ($(elem).hasClass('cache')) {
+            //     $.post('{$Request.root}/index/cache',
+            //         function (data) {
+            //             layer.msg(data.msg, {time: 1500});
+            //             location.reload()
+            //         });
+            //
+            // }
         });
-
-        function setDefault(index) {
-            $('#container-nav')[0].children[0].children[index].click();
-        }
-
-        setDefault(0);
     });
-
-    function getIndex(_arr, _obj) {
-        const len = _arr.length;
-        for (let i = 0; i < len; i++) {
-            if (_arr[i] === _obj) {
-                return parseInt(i);
-            }
-        }
-        return -1;
-    }
-
-    function removeArray(_arr, _obj) {
-        const length = _arr.length;
-        for (let i = 0; i < length; i++) {
-            if (_arr[i] === _obj) {
-                if (i === 0) {
-                    _arr.shift(); //删除并返回数组的第一个元素
-                    return _arr;
-                } else if (i === length - 1) {
-                    _arr.pop();  //删除并返回数组的最后一个元素
-                    return _arr;
-                } else {
-                    _arr.splice(i, 1); //删除下标为i的元素
-                    return _arr;
-                }
-            }
-        }
-    }
 </script>
 {/block}
 

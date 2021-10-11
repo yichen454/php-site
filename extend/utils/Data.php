@@ -36,6 +36,36 @@ final class Data
         return $arr;
     }
 
+    static public function channelLevel2($data, $pid = 0, $html = "&nbsp;", $fieldPri = 'cid', $fieldPid = 'pid', $level = 0)
+    {
+        if (empty($data)) {
+            return [];
+        }
+        $arr = [];
+        foreach ($data as $v) {
+            if ($v[$fieldPid] == $pid) {
+                $v["type"] = $level;
+                $v["icon"] = "layui-icon " . $v["icon"];
+                $v["href"] = "/" . $v["name"];
+                $v["openType"] = "_iframe";
+                $child = self::channelLevel2($data, $v[$fieldPri], $html, $fieldPri, $fieldPid, $level + 1);
+                if (count($child) > 0) {
+                    $v["type"] = 0;
+                    $v["children"] = $child;
+                } else {
+                    $v["children"] = [];
+                    $v["type"] = 1;
+                }
+                $arr[] = $v;
+//                $arr[$v[$fieldPri]] = $v;
+//                $arr[$v[$fieldPri]]['_level'] = $level;
+//                $arr[$v[$fieldPri]]['_html'] = str_repeat($html, $level - 1);
+//                $arr[$v[$fieldPri]]["_data"] = self::channelLevel($data, $v[$fieldPri], $html, $fieldPri, $fieldPid, $level + 1);
+            }
+        }
+        return $arr;
+    }
+
     /**
      * 获得所有子栏目
      * @param $data 栏目数据

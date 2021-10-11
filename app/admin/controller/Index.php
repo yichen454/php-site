@@ -14,27 +14,33 @@ class Index extends AdminBase
 {
     public function index()
     {
-        //子菜单
-        $auth_pid = $this->request->param('auth_pid');
         //分配菜单数据
         $auth = new AuthRule();
         //左侧菜单栏
-        $menu_data = $auth->getMenu($auth_pid);
-        //给菜单绑定角标数量
-        $this->setBadge($menu_data);
+        $menu_data = $auth->getMenuJson(0);
+        $this->_removeMenuAuth($menu_data, 'children');
 
-        //移除无权限的菜单列表
-        $this->_removeMenuAuth($menu_data);
-
-//        halt($menu_data, $auth_pid);
-
+//        halt($menu_data);
         return view('', [
             'cache_file' => SysService::getCacheSize(),//缓存文件大小
-            'menu' => $menu_data,
-            'auth_pid' => $auth_pid,
             'admin_data' => Session::get('admin_auth')
         ]);
 
+    }
+
+    public function menu()
+    {
+        //分配菜单数据
+        $auth = new AuthRule();
+        //左侧菜单栏
+        $menu_data = $auth->getMenuJson(0);
+        $this->_removeMenuAuth($menu_data, 'children');
+
+        $arr = [];
+        foreach ($menu_data as $v) {
+            $arr[] = $v;
+        }
+        return json($arr);
     }
 
     public function home()
@@ -45,23 +51,30 @@ class Index extends AdminBase
         } else {
             $gd = "不支持";
         }
-        $server_info = array(
-            '操作系统' => PHP_OS,
-//            'IP端口' => $_SERVER['SERVER_ADDR'] . ':' . $_SERVER['SERVER_PORT'],
-            'PHP运行方式' => php_sapi_name(),
-            '当前PHP版本' => PHP_VERSION,
-//            '最低PHP版本' => 'PHP >= 7.1.0',
-            '上传附件限制' => ini_get('upload_max_filesize'),
-            '执行时间限制' => ini_get('max_execution_time') . "秒",
-            '剩余空间' => format_bytes(@disk_free_space(".")),
-            '服务器时间' => date("Y年n月j日 H:i:s"),
-            '北京时间' => gmdate("Y年n月j日 H:i:s", time() + 8 * 3600),
-        );
+
         return view('', [
-            'server_info' => $server_info,
+            'server_info' => $this->getSystem(),
             'log_file' => SysService::getLogSize(),
             'sys_debug' => env('app_debug'),
         ]);
+    }
+
+    // 获取系统参数
+    protected function getSystem()
+    {
+        return [
+            'os' => PHP_OS,
+            'space' => round((disk_free_space('.') / (1024 * 1024)), 2) . 'M',
+            'addr' => $_SERVER['HTTP_HOST'],
+            'run' => $this->request->server('SERVER_SOFTWARE'),
+            'php' => PHP_VERSION,
+            'php_run' => php_sapi_name(),
+            'mysql' => function_exists('mysql_get_server_info') ? mysql_get_server_info() : \think\facade\Db::query('SELECT VERSION() as mysql_version')[0]['mysql_version'],
+            'think' => $this->app->version(),
+            'upload' => ini_get('upload_max_filesize'),
+            'max' => ini_get('max_execution_time') . '秒',
+            'ver' => 'V5.0.1',
+        ];
     }
 
     public function about()
@@ -70,12 +83,12 @@ class Index extends AdminBase
     }
 
     //移除无权限菜单
-    private function _removeMenuAuth(&$menu_data)
+    private function _removeMenuAuth(&$menu_data, $childName = '_data')
     {
         foreach ($menu_data as $k => $v) {
             if ($this->checkMenuAuth($v['name'])) {
-                if ($v['_data']) {
-                    $this->_removeMenuAuth($menu_data[$k]['_data']);
+                if ($v[$childName]) {
+                    $this->_removeMenuAuth($menu_data[$k][$childName], $childName);
                 }
             } else {
                 // 删除无权限的菜单

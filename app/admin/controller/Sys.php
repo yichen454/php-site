@@ -89,7 +89,7 @@ class Sys extends AdminBase
         $sys_debug = input('sys_debug') ? 0 : 1;
         setENV('APP_DEBUG', $sys_debug);
         $msg = $sys_debug == 1 ? '打开调试成功' : '关闭调试成功';
-        $this->success($msg);
+        $this->success($msg,'/static/reload.html');
     }
 
 }

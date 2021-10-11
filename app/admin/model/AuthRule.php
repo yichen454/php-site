@@ -33,7 +33,31 @@ class AuthRule extends BaseModel
             //仅获取某个菜单下的菜单
             $list = $this->getMenuItem($pid);
         }
+
         $data = Data::channelLevel($list, 0, '&nbsp;', 'id');
+        Cache::set($key, $data, 60);
+        return $data;
+    }
+
+    public function getMenuJson($pid = 0)
+    {
+        $key = 'getMenuJson' . $pid;
+        Cache::clear();
+        if (Cache::has($key)) {
+            return Cache::get($key);
+        }
+        if ($pid == 0) {
+            $where = [
+                'status' => 1,
+                'is_menu' => 1,
+                'z_index' => 0,
+            ];
+            $list = $this->where($where)->order('sort asc, id asc')->select()->toArray();
+        } else {
+            //仅获取某个菜单下的菜单
+            $list = $this->getMenuItem($pid);
+        }
+        $data = Data::channelLevel2($list, 0, '&nbsp;', 'id');
         Cache::set($key, $data, 60);
         return $data;
     }

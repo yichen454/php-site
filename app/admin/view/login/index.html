@@ -3,51 +3,51 @@
 {block name="title"}登录{/block}
 
 {block name="css"}
-<link rel="stylesheet" href="/static/admin/style/login.css" media="all">
+<link rel="stylesheet" href="/static/admin/css/other/login.css"/>
 {/block}
 
 {block name="body"}
-<div class="layadmin-user-login layadmin-user-display-show" id="LAY-user-login" style="display: block;">
-
-    <div class="layadmin-user-login-main">
-        <div class="layadmin-user-login-box layadmin-user-login-header">
-            <h2 class="sys_name">系统管理</h2>
-        </div>
-        <div class="layadmin-user-login-box layadmin-user-login-body layui-form">
-            <div class="layui-form-item">
-                <label class="layadmin-user-login-icon layui-icon layui-icon-username"></label>
-                <input type="text" name="username" lay-verify="required" placeholder="用户名" class="layui-input">
-            </div>
-            <div class="layui-form-item">
-                <label class="layadmin-user-login-icon layui-icon layui-icon-password"></label>
-                <input type="password" name="password" lay-verify="required" placeholder="密码" class="layui-input">
-            </div>
-            <div class="layui-form-item" style="margin-bottom: 20px;">
-
-            </div>
-            <div class="layui-form-item">
-                <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="LAY-user-login-submit">登 入</button>
-            </div>
+<body background="/static/admin/images/background.svg" style="background-size: cover;">
+<form class="layui-form" action="javascript:void(0);">
+    <div class="layui-form-item">
+        <img class="logo" src="/static/admin/images/logo.png"/>
+        <div class="title">管理中台</div>
+        <div class="desc">
+            用户登录
         </div>
     </div>
-</div>
+    <div class="layui-form-item">
+        <input placeholder="用户名" type="text" name="username" lay-verify="required" hover class="layui-input"/>
+    </div>
+    <div class="layui-form-item">
+        <input placeholder="密码" type="password" name="password" lay-verify="required" hover class="layui-input"/>
+    </div>
+
+    <div class="layui-form-item">
+        <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="LAY-user-login-submit">登 入</button>
+    </div>
+</form>
+</body>
 {/block}
 
 {block name="js"}
 <script>
     // window.parent.location.reload();
     layui.use(['layer', 'form', 'jquery'], function () {
-        var $ = layui.$;
-        var form = layui.form;
+        const $ = layui.$,
+            layer = layui.layer,
+            form = layui.form;
         form.render();
         //提交
         form.on('submit(LAY-user-login-submit)', function (obj) {
+            layer.load();
             $.ajax({
                 type: "post",
                 url: "{:url('login/index')}",
                 data: obj.field,
                 dataType: "json",
                 success: function (data) {
+                    layer.closeAll('loading');
                     if (data.code === 1) {
                         layer.msg('登入成功', {
                             offset: '15px'
@@ -57,7 +57,7 @@
                             location.href = "{:url('index/index')}"; //后台主页
                         });
                     } else {
-                        layer.msg(data.msg || data.message);
+                        layer.msg(data.msg || data.message, {offset: '15px', icon: 2, time: 1000});
                     }
                 },
                 error: function (data) {

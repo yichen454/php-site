@@ -7,6 +7,7 @@
 {/block}
 
 {block name="body"}
+<body>
 <div class="layui-fluid">
     <div class="layui-card" style="margin-top: 20px;">
         <div class="layui-row layui-col-space15">
@@ -53,15 +54,18 @@
                             {/if}
                         </div>
                     </div>
+
                     <div class="layui-form-item">
-                        <label class="layui-form-label">菜单icon</label>
-                        <div class="layui-input-inline">
-                            <input type="text" name="icon" placeholder="" autocomplete="off" class="layui-input"
-                                   value="{$data.icon}">
-                        </div>
-                        <div class="layui-form-mid layui-word-aux">
-                            layui字体图标 <a href="https://www.layui.com/doc/element/icon.html" target="_blank"
-                                         style="color: #1E9FFF">前往>></a>
+                        <label for="" class="layui-form-label">图标</label>
+                        <div class="layui-input-block">
+                            <div class="layui-input-inline" style="width: unset">
+                                <input type="text" id="iconPicker2" name="icon"
+                                       value="{$data.icon??'layui-icon layui-icon-circle-dot'}"
+                                       lay-filter="iconPicker2" class="hide">
+                            </div>
+                            <div class="layui-input-inline" style="width: unset">
+                                <span class="pear-btn" id="clear">清空</span>
+                            </div>
                         </div>
                     </div>
                     <div class="layui-form-item">
@@ -75,9 +79,25 @@
         </div>
     </div>
 </div>
+</body>
 {/block}
 
 {block name="js"}
 <script type="application/javascript">
+    layui.use(['iconPicker'], function () {
+        var iconPicker = layui.iconPicker;
+        iconPicker.render({
+            elem: '#iconPicker2',
+            type: 'fontClass',
+            search: true,
+            // 是否开启分页
+            page: true,
+            limit: 12,
+            click: function (data) {
+            },
+            success: function (d) {
+            }
+        });
+    });
 </script>
 {/block}

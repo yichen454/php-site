@@ -74,7 +74,7 @@ class AuthGroup extends AdminBase
         $id = intval($this->request->param('id'));
         !($id > 0) && $this->error('参数错误');
         AuthGroupModel::destroy($id);
-        $this->success('删除成功');
+        $this->success('删除成功', '/static/reload.html');
     }
 
     /**
