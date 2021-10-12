@@ -15,9 +15,11 @@ class AdminBase extends BaseController
     public function initialize()
     {
         parent::initialize();
+
         if (!$this->isLogin()) {
             $this->redirect(url('login/index'));
         }
+
         if (!$this->checkAuth()) {
             $this->error('没有权限');
         }

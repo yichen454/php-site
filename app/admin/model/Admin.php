@@ -3,8 +3,6 @@
 
 namespace app\admin\model;
 
-
-
 class Admin extends BaseModel
 {
     protected $autoWriteTimestamp = true;

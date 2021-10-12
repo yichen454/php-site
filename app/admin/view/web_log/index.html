@@ -71,7 +71,7 @@
         var table = layui.table, form = layui.form, laytpl = layui.laytpl;
         const $ = layui.jquery;
         var cols = [
-            {"type": "checkbox"},
+            {type: "checkbox"},
             {field: "id", title: "ID", width: 100},
             {field: "uid", title: "用户ID", width: 100},
             {field: "module", title: "模块", width: 100},
@@ -109,7 +109,7 @@
                 //记录表格数据
                 tableData = res.data
             },
-            skin: 'line',
+            even: false,
             toolbar: '#toolbar',
             defaultToolbar: [{
                 title: '批量删除',
@@ -119,7 +119,7 @@
                 title: '刷新',
                 layEvent: 'refresh',
                 icon: 'layui-icon-refresh',
-            }, 'filter', 'print', 'exports']
+            }, 'filter', 'exports']
         });
 
         //监听单行工具条
@@ -137,7 +137,7 @@
                         type: 1,
                         title: '日志详情',
                         skin: 'layui-layer-black', //加上边框
-                        area: ['600px', '400px'], //宽高
+                        area: ['600px', '600px'], //宽高
                         content: html
                     })
                 })
@@ -156,8 +156,11 @@
                         return;
                     }
                     layuiApiDel(data, () => {
-                        table.reload('test', {})
+                        table.reload('dataTable', {})
                     });
+                    break;
+                case 'refresh':
+                    table.reload('dataTable', {})
                     break;
             }
         });
@@ -192,15 +195,16 @@
 
         function layuiApiDel(data, callBack) {
             var url = data.deleteUrl || 'delete.html';
+            let tip, delId;
             if (data.length > 0) {
                 //删除多条
-                let tip = '确定要删除这' + data.length + '条信息吗？'
-                let delId = [];
+                tip = '确定要删除这' + data.length + '条信息吗？'
+                delId = [];
                 delId = data.map(x => x.id).join(',')
             } else {
                 //删除单条
-                let tip = '确定要删除[ID:' + data.id + ']这条信息吗？'
-                let delId = data.id;
+                tip = '确定要删除[ID:' + data.id + ']这条信息吗？'
+                delId = data.id;
             }
 
             //询问框

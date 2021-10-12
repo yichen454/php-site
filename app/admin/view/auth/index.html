@@ -7,7 +7,8 @@
 {/block}
 
 {block name="body"}
-<div class="layui-fluid">
+<body class="pear-container">
+<div class="layui-card">
     <form action="{:url('sort')}" method="post">
         <table class="layui-table" style="margin-top: 0;">
             <tr>
@@ -17,7 +18,7 @@
                 <th><b>菜单显示</b></th>
                 <th><b>顶部展示</b></th>
                 <th style="padding: 0 15px;line-height: 40px;"><b>操作</b> <span style="float: right"><a
-                        href="{:url('add')}" data-width="600px" data-height="450px"
+                        href="{:url('add')}" data-width="600px" data-height="600px"
                         class="layui-btn layui-btn-sm xn_open" title="添加权限">添加权限</a></span></th>
             </tr>
 
@@ -73,6 +74,7 @@
         </table>
     </form>
 </div>
+</body>
 {/block}
 
 {block name="js"}

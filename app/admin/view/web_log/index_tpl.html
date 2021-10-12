@@ -1,67 +1,63 @@
-
 <!--标签模版-->
 <script type="text/html" id="webLogInfo">
-    <div class="layui-card-body">
-        <div class="layui-form-item">
-            <label class="layui-form-label">用户：</label>
-            <div class="layui-input-block df-ac">
-                {{# if(d.uid != 0){}}
-                {{d.userInfo.username}}[{{d.userInfo.id}}]
-                {{# } else { }}
-                outer
-                {{# } }}
-            </div>
-        </div>
+    <form class="layui-form" action="">
+        <div class="main-container">
+            <div class="layui-card-body">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">用户：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="username" value="{{# if(d.uid != 0 && 'userInfo' in d){}}
+                                {{d.userInfo.username}}[{{d.userInfo.id}}]
+                                {{# } else { }}
+                                outer
+                                {{# } }}"
+                               lay-verify="required" placeholder="用户" autocomplete="off"
+                               class="layui-input" readonly>
+                    </div>
+                </div>
 
-        <div class="layui-form-item">
-            <label class="layui-form-label">操作系统：</label>
-            <div class="layui-input-block df-ac">
-                {{d.os}}
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">操作浏览器：</label>
-            <div class="layui-input-block df-ac">
-                {{d.browser}}
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">操作URL：</label>
-            <div class="layui-input-block df-ac">
-                {{d.url}}
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">操作数据：</label>
-            <div class="layui-input-block df-ac">
-                <textarea class="layui-textarea">{{d.data}}</textarea>
-            </div>
-        </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">操作系统：</label>
 
-        <div class="layui-form-item">
-            <label class="layui-form-label">响应状态：</label>
-            <div class="layui-input-block df-ac">
-                {{d.response_status}}
+                    <div class="layui-input-block">
+                        <input type="text" name="os" value="{{d.os}}"
+                               lay-verify="required" placeholder="操作系统" autocomplete="off"
+                               class="layui-input" readonly>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">浏览器：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="os" value="{{d.browser}}"
+                               lay-verify="required" placeholder="操作浏览器" autocomplete="off"
+                               class="layui-input" readonly>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">操作URL：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="os" value="{{d.url}}"
+                               lay-verify="required" placeholder="操作URL" autocomplete="off"
+                               class="layui-input" readonly>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">操作数据：</label>
+                    <div class="layui-input-block">
+                        <textarea class="layui-textarea" readonly>{{d.data}}</textarea>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">响应状态：</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="os" value="{{d.response_status}}"
+                               lay-verify="required" placeholder="响应状态" autocomplete="off"
+                               class="layui-input" readonly>
+                    </div>
+                </div>
+
             </div>
         </div>
-
-    </div>
+    </form>
 </script>
-
-<!--数据编辑列表-->
-<!--<script type="text/html" id="editData">-->
-<!--    {include file="web_log/index_edit"}-->
-<!--</script>-->
-
-<!--滑动鼠标查看大图-->
-
-<style>
-    .layui-form-item {
-        margin-bottom: 0px;
-        clear: both;
-    }
-
-    .layui-form-label {
-        width: 100px;
-    }
-</style>
